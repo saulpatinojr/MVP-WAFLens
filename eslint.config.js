@@ -5,7 +5,7 @@ import pluginImport from "eslint-plugin-import";
 
 export default [
   {
-    files: ["src/**/*.ts", "waflens-code/src/**/*.ts"],
+    files: ["src/**/*.ts", "functions/src/**/*.ts"],
     languageOptions: {
       globals: {
         ...globals.node,

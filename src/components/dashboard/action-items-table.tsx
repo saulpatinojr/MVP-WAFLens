@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, Firestore } from 'firebase/firestore';
 
 // Define the type for an action item
 interface ActionItem {
@@ -39,7 +39,8 @@ export function ActionItemsTable() {
 
   useEffect(() => {
     const fetchActionItems = async () => {
-      const querySnapshot = await getDocs(collection(db, "action_items"));
+      if (!db) return; // Guard clause for undefined db
+      const querySnapshot = await getDocs(collection(db as Firestore, "action_items"));
       const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ActionItem));
       setActionItems(items);
     };

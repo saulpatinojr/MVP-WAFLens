@@ -674,7 +674,7 @@ const SidebarMenuSkeleton = React.forwardRef<
         style={
           {
             "--skeleton-width": width,
-          } as React.CSS.Properties
+          } as React.CSSProperties
         }
       />
     </div>

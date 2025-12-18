@@ -31,7 +31,7 @@ if (typeof window !== "undefined") {
   if (process.env.NODE_ENV === "development") {
     connectFirestoreEmulator(db, "127.0.0.1", 8080);
     if (auth) { // ensure auth is initialized before connecting
-        connectAuthEmulator(auth, "http://127.0.0.1:9099");
+      connectAuthEmulator(auth, "http://127.0.0.1:9099");
     }
   }
 }
