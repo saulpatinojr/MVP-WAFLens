@@ -1,7 +1,9 @@
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarRail, SidebarTrigger } from '@/components/ui/sidebar';
+"use client";
+
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarRail, SidebarTrigger, SidebarFooter } from '@/components/ui/sidebar';
 import { MainNav } from '@/components/dashboard/main-nav';
 import { PillarCard } from '@/components/dashboard/pillar-card';
-import { PanelsTopLeft, Gauge, ShieldCheck, PiggyBank, Crosshair } from 'lucide-react';
+import { PanelsTopLeft, Gauge, ShieldCheck, PiggyBank, Crosshair, LogOut } from 'lucide-react';
 import { Logo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -9,6 +11,16 @@ import { FrameworkAdoptionChart } from '@/components/dashboard/framework-adoptio
 import { ActionItemsTable } from '@/components/dashboard/action-items-table';
 import { OrderCard } from '@/components/dashboard/order-card';
 import PillarObservanceChart from '@/components/dashboard/PillarObservanceChartClient';
+import { useAuth } from '@/contexts/auth-context';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const orderData1 = [
   { name: 'Mon', uv: 400, pv: 2400, amt: 2400 },
@@ -51,6 +63,8 @@ const orderData4 = [
 ];
 
 export default function Home() {
+  const { user, signOut } = useAuth();
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -69,6 +83,34 @@ export default function Home() {
         <SidebarContent>
           <MainNav />
         </SidebarContent>
+        <SidebarFooter>
+          {user && (
+            <div className="p-2">
+               <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-start px-2">
+                    <Avatar className="h-6 w-6 mr-2">
+                      <AvatarImage src={user.photoURL || undefined} />
+                      <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start text-xs truncate">
+                      <span className="font-medium">{user.displayName || 'User'}</span>
+                      <span className="text-muted-foreground truncate max-w-[120px]">{user.email}</span>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="start" forceMount>
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <div className="flex-1 flex flex-col min-h-0">
