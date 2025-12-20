@@ -1,52 +1,196 @@
-# Example schema for simple movie review app
+# WAFLens Data Connect Schema
+# Defines the data model for Well-Architected Framework assessments
 
-# User table is keyed by Firebase Auth UID.
+# User table keyed by Firebase Auth UID
 type User @table {
-  # `@default(expr: "auth.uid")` sets it to Firebase Auth UID during insert and upsert.
   id: String! @default(expr: "auth.uid")
-  username: String! @col(dataType: "varchar(50)")
-  # The `user: User!` field in the Review table generates the following one-to-many query field.
-  #  reviews_on_user: [Review!]!
-  # The `Review` join table the following many-to-many query field.
-  #  movies_via_Review: [Movie!]!
+  email: String!
+  displayName: String
+  photoUrl: String
+  organizationId: String
+  role: String! @default(value: "user")
+  createdAt: Timestamp! @default(expr: "request.time")
+  updatedAt: Timestamp! @default(expr: "request.time")
 }
 
-# Movie is keyed by a randomly generated UUID.
-type Movie @table {
-  # If you do not pass a 'key' to `@table`, Data Connect automatically adds the following 'id' column.
-  # Feel free to uncomment and customize it.
-  #  id: UUID! @default(expr: "uuidV4()")
-  title: String!
-  imageUrl: String!
-  genre: String
+# WAF Pillar - The five pillars of the Well-Architected Framework
+type WAFPillar @table {
+  id: UUID! @default(expr: "uuidV4()")
+  name: String!
+  slug: String! @unique
+  description: String!
+  icon: String!
+  color: String!
+  order: Int!
+  # One-to-many: A pillar has many controls
+  controls: [WAFControl!]!
 }
 
-# MovieMetadata is a metadata attached to a Movie.
-# Movie <-> MovieMetadata is a one-to-one relationship
-type MovieMetadata @table {
-  # @unique ensures each Movie can only one MovieMetadata.
-  movie: Movie! @unique
-  # The movie field adds the following foreign key field. Feel free to uncomment and customize it.
-  #  movieId: UUID!
-  rating: Float
-  releaseYear: Int
+# WAF Control - Individual controls within each pillar
+type WAFControl @table {
+  id: UUID! @default(expr: "uuidV4()")
+  pillar: WAFPillar!
+  name: String!
+  description: String!
+  category: String
+  weight: Float! @default(value: 1.0)
+  order: Int!
+  # One-to-many: A control has many check items
+  checkItems: [ControlCheckItem!]!
+}
+
+# Check Item - Individual questions/checks within a control
+type ControlCheckItem @table {
+  id: UUID! @default(expr: "uuidV4()")
+  control: WAFControl!
+  question: String!
   description: String
+  helpText: String
+  order: Int!
 }
 
-# Reviews is a join table between User and Movie.
-# It has a composite primary keys `userUid` and `movieId`.
-# A user can leave reviews for many movies. A movie can have reviews from many users.
-# User  <-> Review is a one-to-many relationship
-# Movie <-> Review is a one-to-many relationship
-# Movie <-> User is a many-to-many relationship
-type Review @table(name: "Reviews", key: ["movie", "user"]) {
+# Assessment - A user's WAF assessment
+type Assessment @table {
+  id: UUID! @default(expr: "uuidV4()")
   user: User!
-  # The user field adds the following foreign key field. Feel free to uncomment and customize it.
-  #  userUid: String!
-  movie: Movie!
-  # The movie field adds the following foreign key field. Feel free to uncomment and customize it.
-  #  movieId: UUID!
-  rating: Int
-  reviewText: String
-  reviewDate: Date! @default(expr: "request.time")
+  name: String!
+  description: String
+  cloudProvider: String! @default(value: "azure")
+  status: String! @default(value: "draft")
+  overallScore: Float
+  createdAt: Timestamp! @default(expr: "request.time")
+  updatedAt: Timestamp! @default(expr: "request.time")
+  # One-to-many: An assessment has many pillar scores
+  pillarScores: [AssessmentPillarScore!]!
+  # One-to-many: An assessment has many responses
+  responses: [AssessmentResponse!]!
+}
+
+# Per-pillar score within an assessment
+type AssessmentPillarScore @table(key: ["assessment", "pillar"]) {
+  assessment: Assessment!
+  pillar: WAFPillar!
+  score: Float!
+  status: String! @default(value: "not_started")
+  updatedAt: Timestamp! @default(expr: "request.time")
+}
+
+# Individual response to a check item
+type AssessmentResponse @table(key: ["assessment", "checkItem"]) {
+  assessment: Assessment!
+  checkItem: ControlCheckItem!
+  response: String! # "yes", "no", "partial", "not_applicable"
+  notes: String
+  evidence: String
+  updatedAt: Timestamp! @default(expr: "request.time")
+}
+
+# AI-generated recommendation
+type Recommendation @table {
+  id: UUID! @default(expr: "uuidV4()")
+  assessment: Assessment!
+  pillar: WAFPillar!
+  control: WAFControl
+  title: String!
+  description: String!
+  priority: String! # "critical", "high", "medium", "low"
+  effort: String! # "low", "medium", "high"
+  impact: String! # "low", "medium", "high"
+  status: String! @default(value: "pending")
+  remediationSteps: String
+  aiModel: String
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# Action item for tracking remediation
+type ActionItem @table {
+  id: UUID! @default(expr: "uuidV4()")
+  assessment: Assessment!
+  recommendation: Recommendation
+  title: String!
+  description: String
+  assignee: User
+  dueDate: Date
+  status: String! @default(value: "open")
+  priority: String! @default(value: "medium")
+  cost: Float
+  createdAt: Timestamp! @default(expr: "request.time")
+  updatedAt: Timestamp! @default(expr: "request.time")
+}
+
+# Cloud resource being assessed
+type Resource @table {
+  id: UUID! @default(expr: "uuidV4()")
+  assessment: Assessment!
+  externalId: String!
+  name: String!
+  type: String!
+  region: String
+  tags: String
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+# Queries
+extend type Query {
+  # Get all pillars with their controls
+  listPillars: [WAFPillar!]! @auth(level: PUBLIC)
+  
+  # Get pillar by slug
+  getPillarBySlug(slug: String!): WAFPillar @auth(level: PUBLIC)
+  
+  # Get user's assessments
+  listUserAssessments: [Assessment!]! 
+    @auth(level: USER)
+  
+  # Get specific assessment with scores
+  getAssessment(id: UUID!): Assessment 
+    @auth(level: USER)
+  
+  # Get recommendations for an assessment
+  getRecommendations(assessmentId: UUID!): [Recommendation!]!
+    @auth(level: USER)
+  
+  # Get action items for an assessment
+  getActionItems(assessmentId: UUID!): [ActionItem!]!
+    @auth(level: USER)
+}
+
+# Mutations
+extend type Mutation {
+  # Create new assessment
+  createAssessment(
+    name: String!
+    description: String
+    cloudProvider: String!
+  ): Assessment @auth(level: USER)
+  
+  # Submit response to a check item
+  submitResponse(
+    assessmentId: UUID!
+    checkItemId: UUID!
+    response: String!
+    notes: String
+  ): AssessmentResponse @auth(level: USER)
+  
+  # Update recommendation status
+  updateRecommendationStatus(
+    id: UUID!
+    status: String!
+  ): Recommendation @auth(level: USER)
+  
+  # Create action item
+  createActionItem(
+    assessmentId: UUID!
+    recommendationId: UUID
+    title: String!
+    description: String
+    priority: String
+    dueDate: Date
+  ): ActionItem @auth(level: USER)
+  
+  # Update action item status
+  updateActionItemStatus(
+    id: UUID!
+    status: String!
+  ): ActionItem @auth(level: USER)
 }

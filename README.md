@@ -1,110 +1,163 @@
-# WAFLens Project
+# WAFLens
 
-This project is a web application built with Next.js, TypeScript, and Firebase. It's designed to be a well-structured, secure, and easily deployable application.
-
-## 📝 Project Status
-
-The initial setup and deployment of the WAFLens application are complete. The project is now in a stable state, with a functional CI/CD pipeline that deploys the front-end to Firebase Hosting and the backend services to Firebase Functions and Data Connect.
-
-## ✅ Next Steps
-
-The development roadmap and a detailed list of the next tasks are outlined in the `TODO.md` file. Please refer to it for the latest project priorities.
-
-[➡️ View the Project TODO List](./TODO.md)
+**Cloud Well-Architected Framework Assessment Platform** – Analyze, score, and improve your cloud infrastructure across all five WAF pillars.
 
 ---
 
-## 🚀 Project Setup
+## Overview
+
+WAFLens helps organizations assess their cloud infrastructure against the Well-Architected Framework (WAF). Currently focused on **Azure**, with multi-cloud support planned for GCP and AWS.
+
+| Pillar             | Description                        |
+| ------------------ | ---------------------------------- |
+| 🔒 **Security**    | Protect data, systems, and assets  |
+| ⚡ **Reliability** | Ensure workloads perform correctly |
+| 🚀 **Performance** | Use resources efficiently          |
+| 💰 **Cost**        | Avoid unnecessary spending         |
+| ⚙️ **Operations**  | Run and monitor effectively        |
+
+---
+
+## Key Features
+
+- **Azure Advisor Integration** – Pull recommendations directly from Azure
+- **AI-Powered Analysis** – Gemini, OpenAI, Claude, Perplexity integration
+- **Automated Workflows** – n8n (self-hosted), Buildship orchestration
+- **Real-time Dashboards** – Track compliance scores over time
+- **Embeddable Widget** – Deploy on existing sites via CDN
+
+---
+
+## Tech Stack
+
+| Layer      | Technology                                     |
+| ---------- | ---------------------------------------------- |
+| Frontend   | Next.js 15, React 18, TailwindCSS, shadcn/ui   |
+| Backend    | Python FastAPI (Cloud Run), Firebase Functions |
+| Database   | Firestore, Firebase Data Connect (PostgreSQL)  |
+| AI         | Gemini 1.5, OpenAI GPT-4, Claude 3, Perplexity |
+| Auth       | Firebase Authentication (Google Sign-In)       |
+| Automation | n8n (self-hosted VPS), Buildship               |
+| CI/CD      | GitHub Actions                                 |
+| Cloud      | Azure (primary), GCP, AWS (planned)            |
+
+---
+
+## Quick Start
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (v20 or later recommended)
-- [npm](https://www.npmjs.com/)
-- [Firebase CLI](https://firebase.google.com/docs/cli) (`npm install -g firebase-tools`)
+
+- Node.js 20+
+- Python 3.11+
+- Firebase CLI (`npm install -g firebase-tools`)
+- Azure CLI (for Advisor integration)
 
 ### Installation
-1.  **Clone the repository:**
-    ```bash
-    git clone <your-repository-url>
-    cd <your-project-directory>
-    ```
-2.  **Install root dependencies:**
-    ```bash
-    npm install
-    ```
-3.  **Install Firebase Functions dependencies:**
-    ```bash
-    cd functions
-    npm install
-    cd ..
-    ```
+
+```bash
+# Clone and install frontend
+git clone https://github.com/your-org/waflens.git
+cd waflens && npm install
+
+# Install backend
+cd backend && pip install -r requirements.txt
+```
+
+### Development
+
+```bash
+# Frontend (http://localhost:3000)
+npm run dev
+
+# Backend (http://localhost:8000)
+cd backend && uvicorn app.main:app --reload
+```
+
+### Environment Variables
+
+Create `.env.local` in root:
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+GEMINI_API_KEY=...
+```
+
+Create `.env` in `backend/`:
+
+```env
+FIREBASE_PROJECT_ID=...
+GEMINI_API_KEY=...
+AZURE_SUBSCRIPTION_ID=...
+AZURE_TENANT_ID=...
+AZURE_CLIENT_ID=...
+AZURE_CLIENT_SECRET=...
+```
 
 ---
 
-## 🔥 Firebase Configuration
+## Project Structure
 
-### 1. Link Your Local Project
-- The `.firebaserc` file should be updated with your actual Firebase **Project ID**.
-- Log in to Firebase using the CLI:
-    ```bash
-    firebase login
-    ```
-
-### 2. Environment Variables
-
-#### Gemini API Key
-This project uses Genkit to interact with Google's Gemini models. You can get a key from [Google AI Studio](https://aistudio.google.com/app/apikey).
-
--   **Local Development**: Create a file named `.env.local` in the root of your project and add your API key:
-    ```
-    GEMINI_API_KEY="your-api-key-here"
-    ```
--   **Production (Firebase)**: Add the Gemini API key as a secret in your CI/CD environment (e.g., GitHub Actions).
-
----
-
-## 📜 Available Scripts
-
--   `npm run dev`: Runs the Next.js front-end in development mode.
--   `npm run build`: Builds the application for production.
--   `npm run lint`: Lints the codebase.
-
-### Firebase Functions Scripts (from the `functions/` directory)
--   `npm run build`: Compiles the TypeScript source code.
--   `npm run lint`: Lints the TypeScript code.
+```
+waflens/
+├── src/                     # Next.js frontend
+│   ├── app/                 # Pages (dashboard, pillars)
+│   ├── components/          # React components
+│   ├── hooks/               # Custom React hooks
+│   └── contexts/            # Auth context
+├── backend/                 # Python FastAPI
+│   └── app/
+│       ├── api/v1/          # API endpoints
+│       └── core/            # Config, security, AI client
+├── dataconnect/             # Firebase Data Connect schema
+├── functions/               # Firebase Functions
+├── n8n/                     # n8n workflow exports (planned)
+└── .github/workflows/       # CI/CD pipelines
+```
 
 ---
 
-## 🚀 Deployment with GitHub Actions
+## Automation Architecture
 
-This project is configured for CI/CD using GitHub Actions. The workflow automatically deploys the application to Firebase on every push to the `main` branch.
+### n8n (Self-Hosted VPS)
 
-### GitHub Secrets Configuration
-For the deployment to work, you must configure secrets in your GitHub repository settings:
+- **Daily Azure Sync** – Azure Advisor → Firestore → Slack
+- **AI Recommendation Pipeline** – Multi-model analysis
+- **GitHub Issue Automation** – Findings → Issues → Tasks
 
-1.  **`FIREBASE_SERVICE_ACCOUNT`**:
-    - In the Firebase Console, go to **Project settings > Service accounts**.
-    - Click **Generate new private key** to download a JSON file.
-    - Create a GitHub secret named `FIREBASE_SERVICE_ACCOUNT` and paste the entire content of the JSON file as the value.
+### Buildship
 
-2.  **`GEMINI_API_KEY`**:
-    - Create a secret named `GEMINI_API_KEY` with your Gemini API key.
+- **Assessment Scoring Engine** – Calculate pillar scores
+- **Cloud Resource Scanner** – Map resources to controls
 
 ---
 
-## 💿 Data Connect
+## Deployment
 
-This project uses Firebase Data Connect to provide a type-safe GraphQL data layer.
+```bash
+# Frontend → Firebase Hosting
+firebase deploy --only hosting
 
--   **Schema**: The GraphQL schema is defined in `dataconnect/schema/schema.gql`. A markdown version is also available for quick reference at `dataconnect_schema.md`.
--   **Generated SDK**: The TypeScript SDK is automatically generated by Data Connect and located in `waflens-code/src/dataconnect-generated`.
+# Backend → Cloud Run
+cd backend && gcloud run deploy waflens-api --source . --region us-central1
+
+# Firestore Rules
+firebase deploy --only firestore:rules
+```
 
 ---
 
-## 🔒 Security Rules
+## Contributing
 
-The `firestore.rules` file provides a basic security template that denies all reads and writes by default. This should be updated as you implement authentication.
+See [TODO.md](./TODO.md) for priority tasks and open issues.
 
-## Important Notes
+1. Fork → Branch → Commit → PR
+2. Follow TypeScript strict mode
+3. Add tests for new features
+4. Update documentation
 
-- **ESLint v9**: The `functions` directory uses the modern, flat `eslint.config.js` for improved code quality.
-- **Performance**: A page load delay was resolved by embedding an inline SVG favicon.
+---
+
+## License
+
+MIT

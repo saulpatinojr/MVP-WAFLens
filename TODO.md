@@ -1,27 +1,140 @@
-# TODO
+# WAFLens TODO
 
-This document outlines the next steps for the WAFLens project. The initial deployment and setup are complete, and the following tasks are the priority for future development.
+> **Last Updated:** 2025-12-20  
+> **Cloud Focus:** Azure (primary), multi-cloud planned
 
-## 1. Re-implement AI Functionality
-The application build was failing because the AI functionality was attempting to run on the client side. To resolve this, we must re-implement the AI logic in a server-side environment.
+---
 
-- **Action:** Create Next.js API Routes in `src/app/api` to house the AI logic.
-- **Details:** The client-side components will make API calls to these server-side endpoints. This approach is recommended as it allows the project to maintain its static site export (`output: 'export'`) for a fast front-end experience while leveraging a server for intensive tasks.
+## ✅ Completed
 
-## 2. Implement User Authentication
-To secure the application and provide personalized experiences, user authentication is a critical next step.
+### Phase 1: Critical Fixes
 
-- **Action:** Integrate Firebase Authentication.
-- **Details:** Implement sign-in/sign-up flows and protect routes and data based on user authentication status. Update Firestore security rules in `firestore.rules` to reflect the authentication logic.
+- [x] Replace DataConnect schema (was using movie template)
+- [x] Fix Firestore security rules (expired timestamp)
+- [x] Implement all 5 pillar pages
+- [x] Fix navigation placeholder links
+- [x] Add error handling to `ActionItemsTable`
+- [x] Create custom hooks (`useFirestoreQuery`, `useWAFPillars`)
+- [x] Create Python backend structure
+- [x] Update README and TODO documentation
 
-## 3. Connect Front-End to Data Connect
-The Data Connect schema and SDK are in place, but the front-end components are still using placeholder data.
+---
 
-- **Action:** Replace placeholder data in the dashboard components with live data from the Data Connect service.
-- **Details:** Use the generated hooks from the `waflens-code/src/dataconnect-generated` directory to query and mutate data in your dashboard components (`src/components/dashboard/*`).
+## 🔴 Critical (Next Sprint)
 
-## 4. Expand Testing Coverage
-To ensure the stability and reliability of the application, a robust testing suite is necessary.
+### Azure Integration
 
-- **Action:** Add unit and integration tests for new and existing features.
-- **Details:** Focus on testing the AI API routes, authentication flows, and data-driven components.  
+- [ ] Set up Azure Service Principal for API access
+- [ ] Implement Azure Advisor API client in backend
+- [ ] Create `/api/v1/azure/advisor` endpoint
+- [ ] Sync Azure recommendations to Firestore
+
+### n8n Workflows (Self-Hosted VPS)
+
+- [ ] Create `n8n/daily-azure-sync.json` workflow
+- [ ] Create `n8n/ai-recommendation-pipeline.json` workflow
+- [ ] Create `n8n/github-issue-automation.json` workflow
+- [ ] Document n8n setup and import instructions
+
+### Buildship Flows
+
+- [ ] Document assessment scoring flow spec
+- [ ] Document cloud resource scanner flow spec
+- [ ] Create Buildship integration guide
+
+---
+
+## 🟠 High Priority
+
+### Code Quality
+
+- [ ] Replace `any` types in `order-card.tsx`
+- [ ] Replace `any` types in `framework-adoption-chart.tsx`
+- [ ] Create `useAssessment` hook
+- [ ] Add real-time Firestore listeners
+
+### AI Integration
+
+- [ ] Implement multi-model router (Gemini/OpenAI/Claude/Perplexity)
+- [ ] Create AI chat component in frontend
+- [ ] Add AI recommendations panel to pillar pages
+
+### Authentication
+
+- [ ] Add role-based access (admin, user, viewer)
+- [ ] Implement custom claims in Firebase Auth
+- [ ] Add organization/team support
+
+---
+
+## 🟡 Medium Priority
+
+### UI/UX
+
+- [ ] Add dark mode toggle
+- [ ] Replace inline SVG favicon with proper asset
+- [ ] Add pagination to tables
+- [ ] Improve mobile responsiveness
+- [ ] Add skeleton loading states
+
+### Testing
+
+- [ ] Set up Playwright E2E tests
+- [ ] Add Firestore security rules unit tests
+- [ ] Create GitHub Actions test workflow
+- [ ] Add backend API tests (pytest)
+
+### Frontend-Backend Integration
+
+- [ ] Connect pillar pages to backend API
+- [ ] Replace hardcoded chart data with API calls
+- [ ] Implement assessment questionnaire flow
+
+---
+
+## 🟢 Nice to Have
+
+- [ ] Export assessments to PDF
+- [ ] Multi-language support (i18n)
+- [ ] Team collaboration features
+- [ ] Slack/Teams notification integration
+- [ ] Assessment comparison view
+- [ ] Historical score trending charts
+- [ ] GCP Recommender integration
+- [ ] AWS Trusted Advisor integration
+
+---
+
+## 📋 GitHub Issues Reference
+
+The following issues should be created in GitHub:
+
+### Critical
+
+1. `[CRITICAL] DataConnect schema uses wrong template` ✅ Fixed
+2. `[CRITICAL] ActionItemsTable crashes on Firestore errors` ✅ Fixed
+3. `[CRITICAL] Implement Azure Advisor API integration`
+4. `[CRITICAL] Create n8n workflow JSON exports`
+
+### High
+
+5. `[HIGH] TypeScript any types in chart components`
+6. `[HIGH] No custom data fetching hooks` ✅ Partially fixed
+7. `[HIGH] Implement multi-model AI router`
+8. `[HIGH] Add role-based access control`
+
+### Medium
+
+9. `[MEDIUM] Add dark mode toggle`
+10. `[MEDIUM] Add pagination to tables`
+11. `[MEDIUM] Set up E2E testing with Playwright`
+12. `[MEDIUM] Create Buildship flow documentation`
+
+---
+
+## Notes
+
+- **n8n**: Self-hosted on VPS, workflows exported as JSON
+- **Buildship**: Cloud account active, used for assessment scoring
+- **Azure**: Primary cloud, using Advisor API for recommendations
+- **AI**: Multi-model approach (Gemini for speed, GPT-4 for code, Claude for docs)

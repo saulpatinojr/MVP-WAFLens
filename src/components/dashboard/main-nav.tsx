@@ -19,23 +19,28 @@ export function MainNav() {
       icon: LayoutDashboard,
     },
     {
-      href: "#",
-      label: "WAF Overview",
+      href: "/security",
+      label: "Security",
       icon: LayoutDashboard,
     },
     {
-      href: "#",
-      label: "Files",
+      href: "/reliability",
+      label: "Reliability",
       icon: Files,
     },
     {
-      href: "#",
-      label: "Menu",
+      href: "/performance-efficiency",
+      label: "Performance",
       icon: Menu,
     },
     {
-      href: "#",
-      label: "Docs",
+      href: "/cost-optimization",
+      label: "Cost",
+      icon: Book,
+    },
+    {
+      href: "/operational-excellence",
+      label: "Operations",
       icon: Book,
     },
   ];

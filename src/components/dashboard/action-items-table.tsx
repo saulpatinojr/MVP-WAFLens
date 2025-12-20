@@ -36,12 +36,29 @@ interface ActionItem {
 
 export function ActionItemsTable() {
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const fetchActionItems = async () => {
-      const querySnapshot = await getDocs(collection(db, "action_items"));
-      const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ActionItem));
-      setActionItems(items);
+      if (!db) {
+        setError(new Error("Firebase not initialized"));
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        setError(null);
+        const querySnapshot = await getDocs(collection(db, "action_items"));
+        const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ActionItem));
+        setActionItems(items);
+      } catch (err) {
+        console.error("Failed to fetch action items:", err);
+        setError(err instanceof Error ? err : new Error("Failed to fetch action items"));
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchActionItems();
@@ -116,8 +133,34 @@ export function ActionItemsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {actionItems.map((item) => (
-              <TableRow key={item.uuid}>
+            {loading && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    <span className="text-muted-foreground">Loading action items...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+            {error && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  <p className="text-destructive">Failed to load action items</p>
+                  <p className="text-xs text-muted-foreground mt-1">{error.message}</p>
+                </TableCell>
+              </TableRow>
+            )}
+            {!loading && !error && actionItems.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  <p className="text-muted-foreground">No action items found</p>
+                  <p className="text-xs text-muted-foreground mt-1">Complete an assessment to generate recommendations</p>
+                </TableCell>
+              </TableRow>
+            )}
+            {!loading && !error && actionItems.map((item) => (
+              <TableRow key={item.uuid || item.id}>
                 <TableCell className="font-medium text-xs">{item.name}</TableCell>
                 <TableCell className="text-xs">{item.uuid}</TableCell>
                 <TableCell className="text-xs">{item.type}</TableCell>
@@ -129,7 +172,7 @@ export function ActionItemsTable() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right text-xs">
-                  ${item.cost.toFixed(2)}
+                  ${item.cost?.toFixed(2) ?? '0.00'}
                 </TableCell>
               </TableRow>
             ))}
